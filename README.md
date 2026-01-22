@@ -90,6 +90,7 @@ Cursor at start: 1
 Simulated remote server change: server-note-1
 SYNC REPORT: SyncReport(entity=note, cursorBefore=1, pushed=0, acked=0, pulled=1, applied=1, ignored=0, cursorAfter=2)
 Done.
+```
 
 ## Run the demo
 
