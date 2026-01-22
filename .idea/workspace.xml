@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ae6bddf-168e-4841-99dc-14ce9e86e0a8" name="Changes" comment="" />
+    <list default="true" id="7ae6bddf-168e-4841-99dc-14ce9e86e0a8" name="Changes" comment="Initial commit: offline-first sync engine + demo-notes" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -44,6 +44,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "gelovI"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/gelovI/Offline-First-Sync-Engine.git",
+    "accountId": "13cd05c1-1068-4770-9d49-d74e53b306d4"
+  }
+}]]></component>
   <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$" gradleHome="C:\Users\ivang\.gradle\wrapper\dists\gradle-8.8-bin\dl7vupf4psengwqhwktix4v1\gradle-8.8" javaHome="C:\Program Files\Java\jdk-17" gradleVersion="8.8" />
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 5
@@ -98,6 +110,19 @@
       <option name="presentableId" value="Default" />
       <updated>1768981498812</updated>
     </task>
+    <task id="LOCAL-00001" summary="Initial commit: offline-first sync engine + demo-notes">
+      <option name="closed" value="true" />
+      <created>1769056312726</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1769056312726</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Initial commit: offline-first sync engine + demo-notes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Initial commit: offline-first sync engine + demo-notes" />
   </component>
 </project>
