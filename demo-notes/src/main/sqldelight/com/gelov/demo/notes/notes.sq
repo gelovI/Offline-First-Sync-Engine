@@ -1,0 +1,27 @@
+-- package com.gelov.demo.notes
+
+CREATE TABLE note (
+  id TEXT NOT NULL PRIMARY KEY,
+  title TEXT NOT NULL,
+  text TEXT NOT NULL,
+  updatedAt TEXT NOT NULL,
+  deletedAt TEXT
+);
+
+upsertNote:
+INSERT OR REPLACE INTO note(id, title, text, updatedAt, deletedAt)
+VALUES (?, ?, ?, ?, ?);
+
+softDeleteNote:
+UPDATE note
+SET deletedAt = ?, updatedAt = ?
+WHERE id = ?;
+
+selectAllNotes:
+SELECT id, title, text, updatedAt, deletedAt
+FROM note
+WHERE deletedAt IS NULL
+ORDER BY updatedAt DESC;
+
+selectNoteById:
+SELECT * FROM note WHERE id = ?;

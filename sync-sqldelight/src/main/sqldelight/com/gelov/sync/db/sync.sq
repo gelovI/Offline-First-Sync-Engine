@@ -1,0 +1,55 @@
+-- package com.gelov.sync.db
+
+CREATE TABLE outbox (
+  outboxId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  entity TEXT NOT NULL,
+  recordId TEXT NOT NULL,          -- UUID string
+  op TEXT NOT NULL,                -- 'UPSERT' | 'DELETE'
+  payloadJson TEXT,                -- null for DELETE
+  clientUpdatedAt TEXT NOT NULL,   -- ISO-8601 (Instant.toString)
+  status TEXT NOT NULL,            -- 'PENDING' | 'ACKED' | 'FAILED'
+  attemptCount INTEGER NOT NULL DEFAULT 0,
+  lastError TEXT,
+  createdAt TEXT NOT NULL          -- ISO-8601
+);
+
+CREATE INDEX outbox_status_idx ON outbox(status, createdAt);
+CREATE INDEX outbox_entity_record_idx ON outbox(entity, recordId);
+
+CREATE TABLE cursor_state (
+  id INTEGER NOT NULL PRIMARY KEY CHECK (id = 1),
+  cursor INTEGER NOT NULL
+);
+
+initCursorRow:
+INSERT OR IGNORE INTO cursor_state(id, cursor) VALUES (1, 0);
+
+getCursor:
+SELECT cursor FROM cursor_state WHERE id = 1;
+
+setCursor:
+UPDATE cursor_state SET cursor = ? WHERE id = 1;
+
+insertOutbox:
+INSERT INTO outbox(entity, recordId, op, payloadJson, clientUpdatedAt, status, attemptCount, createdAt)
+VALUES (?, ?, ?, ?, ?, 'PENDING', 0, ?);
+
+selectPending:
+SELECT outboxId, entity, recordId, op, payloadJson, clientUpdatedAt
+FROM outbox
+WHERE status = 'PENDING'
+ORDER BY outboxId
+LIMIT ?;
+
+markAcked:
+UPDATE outbox SET status = 'ACKED' WHERE outboxId IN ?;
+
+markFailed:
+UPDATE outbox
+SET status = 'FAILED', attemptCount = attemptCount + 1, lastError = ?
+WHERE outboxId = ?;
+
+hasPending:
+SELECT EXISTS(
+  SELECT 1 FROM outbox WHERE status = 'PENDING' LIMIT 1
+);

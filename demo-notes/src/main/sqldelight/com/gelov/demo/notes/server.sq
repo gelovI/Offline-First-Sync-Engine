@@ -1,0 +1,50 @@
+-- Server-side cursor per entity (simulated server state)
+CREATE TABLE server_cursor (
+  entity TEXT NOT NULL PRIMARY KEY,
+  cursor INTEGER NOT NULL
+);
+
+-- Server-side change log (append-only)
+CREATE TABLE server_change (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  entity TEXT NOT NULL,
+  record_id TEXT NOT NULL,
+  op TEXT NOT NULL,          -- UPSERT / DELETE
+  payload_json TEXT,
+  updated_at TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_server_change_dedupe
+ON server_change(entity, record_id, updated_at);
+-- === Queries ===
+
+selectServerCursor:
+SELECT cursor FROM server_cursor WHERE entity = ?;
+
+setServerCursor:
+INSERT OR REPLACE INTO server_cursor(entity, cursor)
+VALUES (?, ?);
+
+-- optional (wenn du gern "exists?" prüfst)
+getServerCursorOrZero:
+SELECT IFNULL((SELECT cursor FROM server_cursor WHERE entity = ?), 0);
+
+
+insertServerChange:
+INSERT OR IGNORE INTO server_change(entity, record_id, op, payload_json, updated_at)
+VALUES (?, ?, ?, ?, ?);
+
+
+pullServerChanges:
+SELECT *
+FROM server_change
+WHERE entity = ?
+  AND id > ?
+ORDER BY id ASC
+LIMIT ?;
+
+selectMaxServerChangeId:
+SELECT IFNULL(MAX(id), 0)
+FROM server_change
+WHERE entity = ?;
+
+
