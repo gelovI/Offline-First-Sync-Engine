@@ -18,9 +18,7 @@ fun main() {
     Thread.sleep(400)
 
     val dbFile = File("offline_first_sync_demo.db")
-//    if (dbFile.exists()) dbFile.delete()
 
-    // 1) Create/open demo DB file
     // 1) Create/open demo DB file
     val driver = JdbcSqliteDriver("jdbc:sqlite:offline_first_sync_demo.db")
 
@@ -31,7 +29,6 @@ fun main() {
         NotesDatabase.Schema.create(driver)
     } else {
         // Demo: wir überspringen migrations erstmal.
-        // Wenn du später echte .sqm migrations nutzt, bauen wir das sauber aus.
     }
 
     val syncDb = SyncDatabase(driver)
@@ -42,7 +39,7 @@ fun main() {
 
     System.err.println("Cursor at start: ${cursorStore.getCursor()}")
 
-    // 3) Create a note locally (simulate offline write)
+    // Create a note locally (simulate offline write)
     val existing = notesDb.notesQueries.selectAllNotes().executeAsList()
     if (existing.isEmpty()) {
         val noteId = UUID.randomUUID().toString()
@@ -74,7 +71,7 @@ fun main() {
         System.err.println("\nDB already has ${existing.size} note(s). No new seed.")
     }
 
-    // 6) Show pending outbox
+    // Show pending outbox
     System.err.println("\nPending outbox:")
     val pending = outbox.peekBatch(limit = 50)
     pending.forEach { item ->
@@ -82,7 +79,7 @@ fun main() {
         System.err.println("  payload=${item.change.payloadJson}")
     }
 
-    // ---- STEP 14: SyncEngine wiring ----
+    // ---- SyncEngine wiring ----
     val server = ServerSimulator(notesDb)
     val remote = DemoRemoteSync(server)
 

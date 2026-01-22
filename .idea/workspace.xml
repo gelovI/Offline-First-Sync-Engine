@@ -118,7 +118,23 @@
       <option name="project" value="LOCAL" />
       <updated>1769056312726</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Initial commit: offline-first sync engine + demo-notes">
+      <option name="closed" value="true" />
+      <created>1769066352399</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1769066352399</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Initial commit: offline-first sync engine + demo-notes">
+      <option name="closed" value="true" />
+      <created>1769066371557</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1769066371557</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
