@@ -97,47 +97,15 @@ Done.
 ```bash
 ./gradlew :demo-notes:run --console=plain
 ```
+## Sync Flow
 
+```mermaid
 flowchart LR
-  %% Offline-First Sync Engine - High-Level Flow
+  Client --> Outbox
+  Outbox --> Push
+  Push --> Server
+  Server --> Pull
+  Pull --> Apply
+  Apply --> Client
+```
 
-  subgraph Client[Client (Offline App)]
-    UI[UI / Domain Logic] -->|Local write| LDB[(Local DB)]
-    LDB --> OB[(Outbox\nPENDING changes)]
-    CS[(CursorStore\nlastCursor)]:::meta
-  end
-
-  subgraph Engine[SyncEngine.syncOnce(entity)]
-    OB -->|peekBatch(limit)| PUSH[Push batch]
-    CS -->|getCursor()| CUR0[Cursor before]
-    PULL[Pull after cursor]
-    APPLY[Apply pulled changes\n(LWW: updatedAt)]
-    ACK[Mark outbox ACKED]
-    CUR1[Cursor after]:::meta
-  end
-
-  subgraph Server[Server (Sync API / Simulator)]
-    API[Push/Pull endpoints] --> SLOG[(Server Change Log\nappend-only)]
-    SCUR[(Server Cursor per entity)]:::meta
-  end
-
-  %% Push path
-  PUSH -->|RemoteSync.push| API
-  API -->|INSERT OR IGNORE\nUNIQUE(entity,recordId,updatedAt)| SLOG
-
-  %% Ack path
-  PUSH --> ACK
-
-  %% Pull path
-  CUR0 --> PULL
-  PULL -->|RemoteSync.pull(afterCursor)| API
-  API -->|SELECT id > cursor\nORDER BY id\nLIMIT n| SLOG
-  API -->|nextCursor| PULL
-
-  %% Apply + cursor advance
-  PULL --> APPLY
-  APPLY -->|upsert/tombstone| LDB
-  APPLY --> CUR1
-  CUR1 -->|setCursor(nextCursor)| CS
-
-  classDef meta fill:#f5f5f5,stroke:#999,stroke-width:1px;
