@@ -109,3 +109,8 @@ flowchart LR
   Apply --> Client
 ```
 
+## What I’d build next
+- HTTP-based push/pull API
+- per-entity cursors
+- Android demo (Compose + SQLDelight)
+- configurable conflict strategies
