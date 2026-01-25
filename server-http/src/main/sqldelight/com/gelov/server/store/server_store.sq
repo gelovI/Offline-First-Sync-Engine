@@ -1,0 +1,51 @@
+-- Append-only Change Log
+CREATE TABLE IF NOT EXISTS change_log (
+  cursorId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  entity TEXT NOT NULL,
+  id TEXT NOT NULL,
+  op TEXT NOT NULL,              -- "UPSERT" | "DELETE"
+  clientUpdatedAt TEXT NOT NULL, -- ISO-8601
+  payloadJson TEXT,
+  changeId TEXT NOT NULL,
+  originClientId TEXT NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_change_log_changeId ON change_log(changeId);
+CREATE INDEX IF NOT EXISTS idx_change_log_entity_cursor ON change_log(entity, cursorId);
+CREATE INDEX IF NOT EXISTS idx_change_log_entity_origin_cursor
+ON change_log(entity, originClientId, cursorId);
+
+insertChange:
+INSERT OR IGNORE INTO change_log(entity, id, op, clientUpdatedAt, payloadJson, changeId, originClientId)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+maxCursor:
+SELECT IFNULL(MAX(cursorId), 0) AS v FROM change_log;
+
+pullAfter:
+SELECT cursorId, entity, id, op, clientUpdatedAt, payloadJson, changeId, originClientId
+FROM change_log
+WHERE entity = ? AND cursorId > ?
+ORDER BY cursorId ASC
+LIMIT ?;
+
+pullAfterExcludingClient:
+SELECT cursorId, entity, id, op, clientUpdatedAt, payloadJson, changeId, originClientId
+FROM change_log
+WHERE entity = ? AND cursorId > ? AND originClientId != ?
+ORDER BY cursorId ASC
+LIMIT ?;
+
+CREATE TABLE IF NOT EXISTS server_kv (
+  key TEXT NOT NULL PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+getServerKv:
+SELECT value
+FROM server_kv
+WHERE key = ?;
+
+putServerKv:
+INSERT OR REPLACE INTO server_kv(key, value)
+VALUES (?, ?);
