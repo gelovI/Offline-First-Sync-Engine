@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 kotlin {
@@ -7,6 +8,5 @@ kotlin {
 }
 
 dependencies {
-    // V1: keine deps notwendig
-    // später: kotlinx-coroutines, kotlinx-serialization, etc.
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 }

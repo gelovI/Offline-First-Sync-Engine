@@ -22,5 +22,8 @@ rootProject.name = "offline-first-sync"
 include(
     ":sync-core",
     ":sync-sqldelight",
-    ":demo-notes"
+    ":demo-notes",
+    ":server-http"
 )
+
+include("server-http")

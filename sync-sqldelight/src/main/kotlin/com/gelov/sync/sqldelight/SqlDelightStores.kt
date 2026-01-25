@@ -16,14 +16,51 @@ class SqlDelightOutbox(
     private val q = db.syncQueries
 
     override fun enqueue(change: Change) {
-        q.insertOutbox(
-            entity = change.entity,
-            recordId = change.id,
-            op = change.op.name,
-            payloadJson = change.payloadJson,
-            clientUpdatedAt = change.clientUpdatedAt.toString(),
-            createdAt = Instant.now().toString()
-        )
+        db.transaction {
+            val existing = q.selectPendingForRecord(
+                entity = change.entity,
+                recordId = change.id
+            ).executeAsOneOrNull()
+
+            if (existing == null) {
+                // kein Pending → neu anlegen
+                q.insertPendingOutbox(
+                    entity = change.entity,
+                    recordId = change.id,
+                    op = change.op.name,
+                    payloadJson = change.payloadJson,
+                    clientUpdatedAt = change.clientUpdatedAt.toString(),
+                    originClientId = change.originClientId,
+                    createdAt = Instant.now().toString(),
+                    changeId = change.changeId
+                )
+                return@transaction
+            }
+
+            // -------- LWW + Tie-break (identisch zum Apply) --------
+            val existingAt = Instant.parse(existing.clientUpdatedAt)
+            val incomingAt = change.clientUpdatedAt
+
+            val incomingIsNewer = when {
+                incomingAt.isAfter(existingAt) -> true
+                incomingAt.isBefore(existingAt) -> false
+                else -> change.originClientId > existing.originClientId
+            }
+
+            if (!incomingIsNewer) {
+                // incoming ist älter → Pending bleibt unverändert
+                return@transaction
+            }
+
+            // incoming gewinnt → UPDATE statt delete+insert
+            q.updatePendingOutboxById(
+                op = change.op.name,
+                payloadJson = change.payloadJson,
+                clientUpdatedAt = change.clientUpdatedAt.toString(),
+                originClientId = change.originClientId,
+                outboxId = existing.outboxId
+            )
+        }
     }
 
     override fun peekBatch(limit: Int): List<OutboxItem> =
@@ -35,18 +72,20 @@ class SqlDelightOutbox(
                     id = row.recordId,
                     op = Op.valueOf(row.op),
                     clientUpdatedAt = Instant.parse(row.clientUpdatedAt),
-                    payloadJson = row.payloadJson
+                    payloadJson = row.payloadJson,
+                    originClientId = row.originClientId,
+                    changeId = row.changeId
                 )
             )
         }
 
-    override fun markAcked(outboxIds: List<Long>) {
-        if (outboxIds.isEmpty()) return
-        q.markAcked(outboxIds)
+    override fun markAcked(changeIds: List<String>) {
+        if (changeIds.isEmpty()) return
+        q.markAcked(changeIds)
     }
 
-    override fun markFailed(outboxId: Long, error: String) {
-        q.markFailed(lastError = error, outboxId = outboxId)
+    override fun markFailed(changeId: String, error: String) {
+        q.markFailedByChangeId(lastError = error, changeId = changeId)
     }
 
     override fun hasPending(): Boolean =

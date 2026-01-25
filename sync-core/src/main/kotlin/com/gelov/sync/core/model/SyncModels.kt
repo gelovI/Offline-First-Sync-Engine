@@ -9,5 +9,7 @@ data class Change(
     val id: String,
     val op: Op,
     val clientUpdatedAt: Instant,
-    val payloadJson: String?
+    val payloadJson: String?,
+    val originClientId: String,
+    val changeId: String
 )

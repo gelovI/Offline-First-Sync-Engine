@@ -12,23 +12,42 @@ import java.io.File
 import java.time.Instant
 import java.util.UUID
 
+fun nowForWrite(): Instant {
+    val fixedProp = System.getProperty("fixedAt")?.trim()
+
+    return if (!fixedProp.isNullOrEmpty()) {
+        Instant.parse(fixedProp)
+    } else {
+        Instant.now()
+    }
+}
+
 fun main() {
     System.err.println("### STDERR: MAIN START ###")
     println("### STDOUT: MAIN START ###")
     Thread.sleep(400)
 
-    val dbFile = File("offline_first_sync_demo.db")
+    val clientName = System.getProperty("client", "A")
+    println("sys.client=" + System.getProperty("client"))
+    println("sys.flow=" + System.getProperty("flow"))
 
-    // 1) Create/open demo DB file
-    val driver = JdbcSqliteDriver("jdbc:sqlite:offline_first_sync_demo.db")
+    val flow = System.getProperty("flow", "seedDelete")
+    val argId = System.getProperty("id") // optional
+    val argTitle = System.getProperty("title")
+    val argText = System.getProperty("text")
 
+    println("sys.client=" + System.getProperty("client"))
+    println("sys.flow=" + System.getProperty("flow"))
+    println("Flow: $flow")
+    println("sys.fixedAt=" + System.getProperty("fixedAt"))
+
+    val dbFile = File("offline_first_sync_demo_${clientName}.db")
     val isNewDb = !dbFile.exists() || dbFile.length() == 0L
 
+    val driver = JdbcSqliteDriver("jdbc:sqlite:${dbFile.path}")
     if (isNewDb) {
         SyncDatabase.Schema.create(driver)
         NotesDatabase.Schema.create(driver)
-    } else {
-        // Demo: wir überspringen migrations erstmal.
     }
 
     val syncDb = SyncDatabase(driver)
@@ -36,23 +55,40 @@ fun main() {
 
     val outbox = SqlDelightOutbox(syncDb)
     val cursorStore = SqlDelightCursorStore(syncDb)
+    val serverIdStore = SqlDelightServerIdStore(syncDb)
+    println("ServerId at startup (from DB): ${serverIdStore.get()}")
+
+    val clientIdStore = SqlDelightClientIdStore(syncDb)
+    val clientId = clientIdStore.getOrCreate()
+    println("ClientId at startup (from DB): $clientId")
+
+    val remote = HttpRemoteSync(
+        baseUrl = "http://localhost:8080",
+        clientId = clientId,
+        serverIdStore = serverIdStore,
+        onServerReset = {
+            println(">>> SERVER RESET → cursor = 0")
+            cursorStore.setCursor(0L)
+        }
+    )
 
     System.err.println("Cursor at start: ${cursorStore.getCursor()}")
 
-    // Create a note locally (simulate offline write)
-    val existing = notesDb.notesQueries.selectAllNotes().executeAsList()
-    if (existing.isEmpty()) {
-        val noteId = UUID.randomUUID().toString()
-        val now = Instant.now()
+    fun pickActiveIdOrNull(): String? =
+        notesDb.notesQueries.selectAllActiveNotes().executeAsList().firstOrNull()?.id
 
-        val title = "First note"
-        val text = "Hello Offline-First!"
+    fun seedOne(): String {
+        val noteId = UUID.randomUUID().toString()
+        val now = nowForWrite()
+        val title = argTitle ?: "First note"
+        val text = argText ?: "Hello Offline-First!"
 
         notesDb.notesQueries.upsertNote(
             id = noteId,
             title = title,
             text = text,
             updatedAt = now.toString(),
+            updatedByClientId = clientId,
             deletedAt = null
         )
 
@@ -63,12 +99,98 @@ fun main() {
                 id = noteId,
                 op = Op.UPSERT,
                 clientUpdatedAt = now,
-                payloadJson = payloadJson
+                payloadJson = payloadJson,
+                originClientId = clientId,
+                changeId = UUID.randomUUID().toString()
             )
         )
-        System.err.println("\nSeeded first note + queued outbox.")
-    } else {
-        System.err.println("\nDB already has ${existing.size} note(s). No new seed.")
+        System.err.println("\nSeeded note id=$noteId + queued UPSERT.")
+        return noteId
+    }
+
+    fun updateNote(targetId: String) {
+        val now = nowForWrite()
+        val current = notesDb.notesQueries.selectNoteById(targetId).executeAsOneOrNull()
+
+        val newTitle = argTitle ?: ((current?.title ?: "Note") + " (edited)")
+        val newText = argText ?: "from $clientName @ $now"
+        notesDb.notesQueries.upsertNote(
+            id = targetId,
+            title = newTitle,
+            text = newText,
+            updatedAt = now.toString(),
+            updatedByClientId = clientId,
+            deletedAt = null
+        )
+
+        val payloadJson = """{"title":${newTitle.jsonEscape()},"text":${newText.jsonEscape()}}"""
+        outbox.enqueue(
+            Change(
+                entity = "note",
+                id = targetId,
+                op = Op.UPSERT,
+                clientUpdatedAt = now,
+                payloadJson = payloadJson,
+                originClientId = clientId,
+                changeId = UUID.randomUUID().toString()
+            )
+        )
+        System.err.println("Updated locally + queued UPSERT for id=$targetId title=$newTitle")
+    }
+
+    fun deleteNote(targetId: String) {
+        val now = nowForWrite()
+        val local = notesDb.notesQueries.selectNoteById(targetId).executeAsOneOrNull()
+
+        notesDb.notesQueries.upsertNote(
+            id = targetId,
+            title = local?.title ?: "",
+            text = local?.text ?: "",
+            updatedAt = now.toString(),
+            updatedByClientId = clientId,
+            deletedAt = now.toString()
+        )
+
+        outbox.enqueue(
+            Change(
+                entity = "note",
+                id = targetId,
+                op = Op.DELETE,
+                clientUpdatedAt = now,
+                payloadJson = null,
+                originClientId = clientId,
+                changeId = UUID.randomUUID().toString()
+            )
+        )
+
+        System.err.println("Deleted locally + queued DELETE for id=$targetId")
+    }
+
+    when (flow) {
+        "seedDelete" -> {
+            val id = pickActiveIdOrNull() ?: seedOne()
+            deleteNote(id)
+        }
+        "seed" -> {
+            val existing = notesDb.notesQueries.selectAllActiveNotes().executeAsList()
+            if (existing.isEmpty()) seedOne() else System.err.println("\nDB already has ${existing.size} note(s). No new seed.")
+        }
+        "update" -> {
+            val id = argId ?: pickActiveIdOrNull() ?: seedOne()
+            updateNote(id)
+        }
+        "delete" -> {
+            val id = argId ?: pickActiveIdOrNull()
+            if (id != null) deleteNote(id) else System.err.println("No active note to delete.")
+        }
+        "sync" -> {
+            // nothing; just sync
+        }
+        else -> {
+            System.err.println("Unknown flow=$flow; defaulting to seedDelete")
+            val id = pickActiveIdOrNull() ?: seedOne()
+            deleteNote(id)
+        }
     }
 
     // Show pending outbox
@@ -79,19 +201,27 @@ fun main() {
         System.err.println("  payload=${item.change.payloadJson}")
     }
 
-    // ---- SyncEngine wiring ----
-    val server = ServerSimulator(notesDb)
-    val remote = DemoRemoteSync(server)
-
     val applier: (Change) -> ApplyResult = { c ->
         val local = notesDb.notesQueries.selectNoteById(c.id).executeAsOneOrNull()
         val localUpdatedAt = local?.updatedAt?.let { Instant.parse(it) }
 
         val incomingAt = c.clientUpdatedAt
-        val shouldApply = localUpdatedAt == null || !incomingAt.isBefore(localUpdatedAt) // incoming >= local
+        val shouldApply = when {
+            localUpdatedAt == null -> true
+            incomingAt.isAfter(localUpdatedAt) -> true
+            incomingAt.isBefore(localUpdatedAt) -> false
+            else -> { // equal timestamp → tie-break
+                val localBy = local?.updatedByClientId.orEmpty()
+                val incomingBy = c.originClientId
+                incomingBy > localBy
+            }
+        }
 
         if (!shouldApply) {
-            System.err.println("IGNORED (LWW): id=${c.id} local=$localUpdatedAt incoming=$incomingAt")
+            System.err.println(
+                "IGNORED (LWW/TIE): id=${c.id} local=$localUpdatedAt incoming=$incomingAt " +
+                        "localBy=${local?.updatedByClientId} incomingBy=${c.originClientId}"
+            )
             ApplyResult.IGNORED
         } else {
             when (c.op) {
@@ -102,16 +232,18 @@ fun main() {
                         title = t,
                         text = x,
                         updatedAt = incomingAt.toString(),
+                        updatedByClientId = c.originClientId,
                         deletedAt = null
                     )
                 }
                 Op.DELETE -> {
-                    // Tombstone (keep existing title/text if present)
+                    // Tombstone
                     notesDb.notesQueries.upsertNote(
                         id = c.id,
                         title = local?.title ?: "",
                         text = local?.text ?: "",
                         updatedAt = incomingAt.toString(),
+                        updatedByClientId = c.originClientId,
                         deletedAt = incomingAt.toString()
                     )
                 }
@@ -129,26 +261,20 @@ fun main() {
 
     System.err.println("\n== SyncOnce ==")
 
-    // --- DEMO: simulate a remote change happening on the server ---
-    if (cursorStore.getCursor() == 1L) {
-        val serverNow = Instant.now()
-        server.push(
-            entity = "note",
-            changes = listOf(
-                Change(
-                    entity = "note",
-                    id = "server-note-1",
-                    op = Op.UPSERT,
-                    clientUpdatedAt = serverNow,
-                    payloadJson = """{"title":"From Server","text":"Pulled change!"}"""
-                )
-            )
-        )
-        System.err.println("Simulated remote server change: server-note-1")
+    val doSync = System.getProperty("doSync", "true").toBoolean()
+
+    if (!doSync) {
+        System.err.println("Skipping syncOnce (doSync=false)")
+        System.err.println("Pending outbox remains queued.")
+        System.err.println("\nDone.")
+        return
     }
 
     val report = engine.syncOnce(entity = "note", pushLimit = 50, pullLimit = 100)
     System.err.println("SYNC REPORT: $report")
+
+    println("ServerId after sync (saved): ${serverIdStore.get()}")
+
 
     System.err.println("\nDone.")
 }

@@ -8,11 +8,12 @@ class ServerSimulator(private val db: NotesDatabase) {
 
     private val q = db.serverQueries
 
-    data class PushAck(val accepted: Int, val serverCursor: Long, val serverTime: Instant)
+    data class PushAck(
+        val acceptedChangeIds: List<String>
+    )
     data class PullAck(val changes: List<Change>, val nextCursor: Long, val serverTime: Instant)
 
     fun push(entity: String, changes: List<Change>): PushAck {
-        val now = Instant.now()
 
         changes.forEach { c ->
             q.insertServerChange(
@@ -20,26 +21,33 @@ class ServerSimulator(private val db: NotesDatabase) {
                 record_id = c.id,
                 op = c.op.name,
                 payload_json = c.payloadJson,
-                updated_at = c.clientUpdatedAt.toString()
+                updated_at = c.clientUpdatedAt.toString(),
+                originClientId = c.originClientId,
+                changeId = c.changeId
             )
+            // insert should be INSERT OR IGNORE on change_id unique
         }
 
         val newCursor = q.selectMaxServerChangeId(entity).executeAsOne()
         q.setServerCursor(entity = entity, cursor = newCursor)
 
-        return PushAck(accepted = changes.size, serverCursor = newCursor, serverTime = now)
+        return PushAck(
+            acceptedChangeIds = changes.mapNotNull { it.changeId }
+        )
     }
 
     fun pull(entity: String, afterCursor: Long, limit: Long = 100): PullAck {
         val rows = q.pullServerChanges(entity, afterCursor, limit).executeAsList()
-        // rows -> Change
+
         val changes = rows.map { r ->
             Change(
                 entity = r.entity,
                 id = r.record_id,
                 op = Op.valueOf(r.op),
-                clientUpdatedAt = Instant.parse(r.updated_at), // für Demo ok
-                payloadJson = r.payload_json
+                clientUpdatedAt = Instant.parse(r.updated_at),
+                payloadJson = r.payload_json,
+                originClientId = r.originClientId,
+                changeId = r.changeId
             )
         }
 

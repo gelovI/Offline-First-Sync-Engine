@@ -11,10 +11,14 @@ CREATE TABLE server_change (
   record_id TEXT NOT NULL,
   op TEXT NOT NULL,          -- UPSERT / DELETE
   payload_json TEXT,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  originClientId TEXT NOT NULL DEFAULT 'UNKNOWN',
+  changeId TEXT NOT NULL DEFAULT ''
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_server_change_dedupe
 ON server_change(entity, record_id, updated_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_server_change_changeId ON server_change(changeId);
+
 -- === Queries ===
 
 selectServerCursor:
@@ -30,15 +34,29 @@ SELECT IFNULL((SELECT cursor FROM server_cursor WHERE entity = ?), 0);
 
 
 insertServerChange:
-INSERT OR IGNORE INTO server_change(entity, record_id, op, payload_json, updated_at)
-VALUES (?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO server_change(
+  entity,
+  record_id,
+  op,
+  payload_json,
+  updated_at,
+  originClientId,
+  changeId
+) VALUES (?, ?, ?, ?, ?, ?, ?);
 
 
 pullServerChanges:
-SELECT *
+SELECT
+  id,
+  entity,
+  record_id,
+  op,
+  payload_json,
+  updated_at,
+  originClientId,
+  changeId
 FROM server_change
-WHERE entity = ?
-  AND id > ?
+WHERE entity = ? AND id > ?
 ORDER BY id ASC
 LIMIT ?;
 

@@ -7,7 +7,7 @@ interface RemoteSync {
     fun pull(entity: String, afterCursor: Long, limit: Int = 100): RemotePull
 }
 
-data class RemotePushAck(val accepted: Int)
+data class RemotePushAck(val acceptedChangeIds: List<String>)
 data class RemotePull(val changes: List<Change>, val nextCursor: Long)
 
 class SyncEngine(
@@ -23,7 +23,12 @@ class SyncEngine(
         val toPush = pending.map { it.change }
 
         val pushAck = remote.push(entity, toPush)
-        outbox.markAcked(pending.map { it.outboxId })
+
+        val ackedChangeIds = pending
+            .map { it.change.changeId }
+            .filter { it in pushAck.acceptedChangeIds }
+
+        outbox.markAcked(ackedChangeIds)
 
         val pulled = remote.pull(entity, afterCursor = cursorBefore, limit = pullLimit)
 
@@ -43,7 +48,7 @@ class SyncEngine(
             entity = entity,
             cursorBefore = cursorBefore,
             pushed = toPush.size,
-            acked = pending.size,
+            acked = pushAck.acceptedChangeIds.size,
             pulled = pulled.changes.size,
             applied = applied,
             ignored = ignored,

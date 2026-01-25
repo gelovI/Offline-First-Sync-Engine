@@ -4,7 +4,33 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ae6bddf-168e-4841-99dc-14ce9e86e0a8" name="Changes" comment="Initial commit: offline-first sync engine + demo-notes" />
+    <list default="true" id="7ae6bddf-168e-4841-99dc-14ce9e86e0a8" name="Changes" comment="Initial commit: offline-first sync engine + demo-notes">
+      <change afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/HttpRemoteSync.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/ServerIdStore.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/SqlDelightClientIdStore.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/SqlDelightServerIdStore.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server-http/src/main/kotlin/com/gelov/server/PersistentServerStore.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server-http/src/main/kotlin/com/gelov/server/ServerMain.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/api/SyncApiModels.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo-notes/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/demo-notes/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo-notes/offline_first_sync_demo.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/DemoRemoteSync.kt" beforeDir="false" afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/DemoRemoteSync.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/Main.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/ServerSimulator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/ServerSimulator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo-notes/src/main/sqldelight/com/gelov/demo/notes/notes.sq" beforeDir="false" afterPath="$PROJECT_DIR$/demo-notes/src/main/sqldelight/com/gelov/demo/notes/notes.sq" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo-notes/src/main/sqldelight/com/gelov/demo/notes/server.sq" beforeDir="false" afterPath="$PROJECT_DIR$/demo-notes/src/main/sqldelight/com/gelov/demo/notes/server.sq" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/offline_first_sync_demo.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sync-core/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/sync-core/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/LocalStores.kt" beforeDir="false" afterPath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/LocalStores.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/SyncEngine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/SyncEngine.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/model/SyncModels.kt" beforeDir="false" afterPath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/model/SyncModels.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sync-sqldelight/src/main/kotlin/com/gelov/sync/sqldelight/SqlDelightStores.kt" beforeDir="false" afterPath="$PROJECT_DIR$/sync-sqldelight/src/main/kotlin/com/gelov/sync/sqldelight/SqlDelightStores.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sync-sqldelight/src/main/sqldelight/com/gelov/sync/db/sync.sq" beforeDir="false" afterPath="$PROJECT_DIR$/sync-sqldelight/src/main/sqldelight/com/gelov/sync/db/sync.sq" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -44,19 +70,25 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "gelovI"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;gelovI&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/gelovI/Offline-First-Sync-Engine.git",
-    "accountId": "13cd05c1-1068-4770-9d49-d74e53b306d4"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/gelovI/Offline-First-Sync-Engine.git&quot;,
+    &quot;accountId&quot;: &quot;13cd05c1-1068-4770-9d49-d74e53b306d4&quot;
   }
-}]]></component>
+}</component>
   <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$" gradleHome="C:\Users\ivang\.gradle\wrapper\dists\gradle-8.8-bin\dl7vupf4psengwqhwktix4v1\gradle-8.8" javaHome="C:\Program Files\Java\jdk-17" gradleVersion="8.8" />
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/sync-sqldelight/src/main/sqldelight/com/gelov/sync/db/sync.sq" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 5
 }</component>
@@ -65,21 +97,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Gradle.Build offline-first-sync.executor": "Run",
-    "Gradle.offline-first-sync [:demo-notes:com.gelov.demo.notes.MainKt.main()].executor": "Run",
-    "Kotlin.MainKt.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "git-widget-placeholder": "master",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/ivang/IdeaProjects/offline-first-sync",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "stored_options": "{\"dialectConnections\":{\"app.cash.sqldelight.dialects.sqlite_3_18.SqliteDialect\":{\"orderedOptions\":[],\"serializedProperties\":{}}}}"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Gradle.Build offline-first-sync.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Download Sources.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.offline-first-sync [:demo-notes:com.gelov.demo.notes.MainKt.main()].executor&quot;: &quot;Run&quot;,
+    &quot;Kotlin.MainKt.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ivang/IdeaProjects/offline-first-sync&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;zielu.gittoolbox.app.config.blame&quot;,
+    &quot;stored_options&quot;: &quot;{\&quot;dialectConnections\&quot;:{\&quot;app.cash.sqldelight.dialects.sqlite_3_18.SqliteDialect\&quot;:{\&quot;orderedOptions\&quot;:[],\&quot;serializedProperties\&quot;:{}}}}&quot;
   }
-}]]></component>
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\ivang\IdeaProjects\offline-first-sync\server-http\src\main\sqldelight\com\gelov\server\store" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="MainKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.gelov.demo.notes.MainKt" />
@@ -134,7 +173,15 @@
       <option name="project" value="LOCAL" />
       <updated>1769066371557</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Initial commit: offline-first sync engine + demo-notes">
+      <option name="closed" value="true" />
+      <created>1769066672183</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1769066672183</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

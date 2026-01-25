@@ -6,15 +6,19 @@ CREATE TABLE outbox (
   recordId TEXT NOT NULL,          -- UUID string
   op TEXT NOT NULL,                -- 'UPSERT' | 'DELETE'
   payloadJson TEXT,                -- null for DELETE
-  clientUpdatedAt TEXT NOT NULL,   -- ISO-8601 (Instant.toString)
+  clientUpdatedAt TEXT NOT NULL,-- ISO-8601 (Instant.toString)
+  originClientId TEXT NOT NULL,
   status TEXT NOT NULL,            -- 'PENDING' | 'ACKED' | 'FAILED'
   attemptCount INTEGER NOT NULL DEFAULT 0,
   lastError TEXT,
-  createdAt TEXT NOT NULL          -- ISO-8601
+  createdAt TEXT NOT NULL,          -- ISO-8601
+  changeId TEXT NOT NULL
 );
 
 CREATE INDEX outbox_status_idx ON outbox(status, createdAt);
 CREATE INDEX outbox_entity_record_idx ON outbox(entity, recordId);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_outbox_changeId ON outbox(changeId);
+CREATE INDEX IF NOT EXISTS idx_outbox_pending_record ON outbox(entity, recordId, status);
 
 CREATE TABLE cursor_state (
   id INTEGER NOT NULL PRIMARY KEY CHECK (id = 1),
@@ -30,26 +34,98 @@ SELECT cursor FROM cursor_state WHERE id = 1;
 setCursor:
 UPDATE cursor_state SET cursor = ? WHERE id = 1;
 
-insertOutbox:
-INSERT INTO outbox(entity, recordId, op, payloadJson, clientUpdatedAt, status, attemptCount, createdAt)
-VALUES (?, ?, ?, ?, ?, 'PENDING', 0, ?);
-
 selectPending:
-SELECT outboxId, entity, recordId, op, payloadJson, clientUpdatedAt
+SELECT outboxId,
+       entity,
+       recordId,
+       op,
+       payloadJson,
+       clientUpdatedAt,
+       originClientId,
+       changeId
 FROM outbox
 WHERE status = 'PENDING'
-ORDER BY outboxId
+ORDER BY createdAt
 LIMIT ?;
 
 markAcked:
-UPDATE outbox SET status = 'ACKED' WHERE outboxId IN ?;
+UPDATE outbox
+SET status = 'ACKED'
+WHERE changeId IN ?;
 
 markFailed:
 UPDATE outbox
 SET status = 'FAILED', attemptCount = attemptCount + 1, lastError = ?
 WHERE outboxId = ?;
 
+markAckedByChangeIds:
+UPDATE outbox
+SET status = 'ACKED'
+WHERE changeId IN ?;
+
+markFailedByChangeId:
+UPDATE outbox
+SET status = 'FAILED',
+    attemptCount = attemptCount + 1,
+    lastError = ?
+WHERE changeId = ?;
+
 hasPending:
 SELECT EXISTS(
   SELECT 1 FROM outbox WHERE status = 'PENDING' LIMIT 1
 );
+
+-- latest pending for one record
+selectPendingForRecord:
+SELECT *
+FROM outbox
+WHERE entity = ? AND recordId = ? AND status = 'PENDING'
+ORDER BY clientUpdatedAt DESC, originClientId DESC, outboxId DESC
+LIMIT 1;
+
+-- update existing pending (stable outboxId)
+updatePendingOutboxById:
+UPDATE outbox
+SET
+  op = ?,
+  payloadJson = ?,
+  clientUpdatedAt = ?,
+  originClientId = ?,
+  status = 'PENDING',
+  attemptCount = 0,
+  lastError = NULL
+WHERE outboxId = ?;
+
+-- insert new pending
+insertPendingOutbox:
+INSERT INTO outbox(
+  entity,
+  recordId,
+  op,
+  payloadJson,
+  clientUpdatedAt,
+  originClientId,
+  status,
+  createdAt,
+  changeId
+) VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?);
+
+-- ----------------------------
+-- Key/Value Store (Client Meta)
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS sync_kv (
+  key TEXT NOT NULL PRIMARY KEY,
+  value TEXT
+);
+
+upsertKv:
+INSERT OR REPLACE INTO sync_kv(key, value)
+VALUES (?, ?);
+
+
+getKv:
+SELECT value AS v FROM sync_kv WHERE key = ?;
+
+
+deleteKv:
+DELETE FROM sync_kv WHERE key = ?;

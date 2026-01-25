@@ -8,7 +8,7 @@ import com.gelov.sync.core.model.Change
 class DemoRemoteSync(private val server: ServerSimulator) : RemoteSync {
     override fun push(entity: String, changes: List<Change>): RemotePushAck {
         val ack = server.push(entity, changes)
-        return RemotePushAck(accepted = ack.accepted)
+        return RemotePushAck(acceptedChangeIds = ack.acceptedChangeIds)
     }
 
     override fun pull(entity: String, afterCursor: Long, limit: Int): RemotePull {

@@ -10,6 +10,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/demo-notes" />
+            <option value="$PROJECT_DIR$/server-http" />
             <option value="$PROJECT_DIR$/sync-core" />
             <option value="$PROJECT_DIR$/sync-sqldelight" />
           </set>

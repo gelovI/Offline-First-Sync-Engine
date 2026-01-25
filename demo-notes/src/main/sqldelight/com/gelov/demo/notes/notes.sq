@@ -5,12 +5,13 @@ CREATE TABLE note (
   title TEXT NOT NULL,
   text TEXT NOT NULL,
   updatedAt TEXT NOT NULL,
+  updatedByClientId TEXT NOT NULL,
   deletedAt TEXT
 );
 
 upsertNote:
-INSERT OR REPLACE INTO note(id, title, text, updatedAt, deletedAt)
-VALUES (?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO note(id, title, text, updatedAt, updatedByClientId, deletedAt)
+VALUES (?, ?, ?, ?, ?, ?);
 
 softDeleteNote:
 UPDATE note
@@ -23,5 +24,20 @@ FROM note
 WHERE deletedAt IS NULL
 ORDER BY updatedAt DESC;
 
+selectAllActiveNotes:
+SELECT *
+FROM note
+WHERE deletedAt IS NULL
+ORDER BY updatedAt DESC;
+
+markDeleted:
+UPDATE note
+SET deletedAt = ?, updatedAt = ?
+WHERE id = ?;
+
 selectNoteById:
 SELECT * FROM note WHERE id = ?;
+
+
+
+
