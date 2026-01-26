@@ -5,29 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7ae6bddf-168e-4841-99dc-14ce9e86e0a8" name="Changes" comment="Initial commit: offline-first sync engine + demo-notes">
-      <change afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/HttpRemoteSync.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/ServerIdStore.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/SqlDelightClientIdStore.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/SqlDelightServerIdStore.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server-http/src/main/kotlin/com/gelov/server/PersistentServerStore.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server-http/src/main/kotlin/com/gelov/server/ServerMain.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/api/SyncApiModels.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/RetryPolicy.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo-notes/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/demo-notes/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo-notes/offline_first_sync_demo.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo-notes/offline_first_sync_demo_A.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo-notes/offline_first_sync_demo_B.db" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/DemoRemoteSync.kt" beforeDir="false" afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/DemoRemoteSync.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/HttpRemoteSync.kt" beforeDir="false" afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/HttpRemoteSync.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/Main.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/ServerSimulator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/demo-notes/src/main/kotlin/com/gelov/demo/notes/ServerSimulator.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo-notes/src/main/sqldelight/com/gelov/demo/notes/notes.sq" beforeDir="false" afterPath="$PROJECT_DIR$/demo-notes/src/main/sqldelight/com/gelov/demo/notes/notes.sq" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo-notes/src/main/sqldelight/com/gelov/demo/notes/server.sq" beforeDir="false" afterPath="$PROJECT_DIR$/demo-notes/src/main/sqldelight/com/gelov/demo/notes/server.sq" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/offline_first_sync_demo.db" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sync-core/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/sync-core/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server-http/server_store.db" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/LocalStores.kt" beforeDir="false" afterPath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/LocalStores.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/SyncEngine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/SyncEngine.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/model/SyncModels.kt" beforeDir="false" afterPath="$PROJECT_DIR$/sync-core/src/main/kotlin/com/gelov/sync/core/model/SyncModels.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sync-sqldelight/src/main/kotlin/com/gelov/sync/sqldelight/SqlDelightStores.kt" beforeDir="false" afterPath="$PROJECT_DIR$/sync-sqldelight/src/main/kotlin/com/gelov/sync/sqldelight/SqlDelightStores.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sync-sqldelight/src/main/sqldelight/com/gelov/sync/db/sync.sq" beforeDir="false" afterPath="$PROJECT_DIR$/sync-sqldelight/src/main/sqldelight/com/gelov/sync/db/sync.sq" afterDir="false" />
     </list>
@@ -181,7 +168,23 @@
       <option name="project" value="LOCAL" />
       <updated>1769066672183</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Initial commit: offline-first sync engine + demo-notes">
+      <option name="closed" value="true" />
+      <created>1769372473906</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1769372473906</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Initial commit: offline-first sync engine + demo-notes">
+      <option name="closed" value="true" />
+      <created>1769372533187</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1769372533187</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

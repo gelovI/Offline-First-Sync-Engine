@@ -11,9 +11,8 @@ interface LocalOutbox {
     fun enqueue(change: Change)
     fun peekBatch(limit: Int): List<OutboxItem>
 
-    fun markAcked(changeIds: List<String>)
-    fun markFailed(changeId: String, error: String)
-
+    fun markAcked(outboxIds: List<Long>)
+    fun markFailed(outboxId: Long, error: String)
     fun hasPending(): Boolean
 }
 

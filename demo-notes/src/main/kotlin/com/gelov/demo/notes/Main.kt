@@ -270,6 +270,10 @@ fun main() {
         return
     }
 
+    System.err.println("\nOutbox (ALL):")
+    (outbox as? SqlDelightOutbox)?.debugPrintOutboxAll()
+
+
     val report = engine.syncOnce(entity = "note", pushLimit = 50, pullLimit = 100)
     System.err.println("SYNC REPORT: $report")
 

@@ -5,7 +5,6 @@ import com.gelov.sync.core.LocalOutbox
 import com.gelov.sync.core.OutboxItem
 import com.gelov.sync.core.model.Change
 import com.gelov.sync.core.model.Op
-import com.gelov.sync.db.SelectPending
 import com.gelov.sync.db.SyncDatabase
 import java.time.Instant
 
@@ -63,29 +62,52 @@ class SqlDelightOutbox(
         }
     }
 
-    override fun peekBatch(limit: Int): List<OutboxItem> =
-        q.selectPending(limit.toLong()).executeAsList().map { row: SelectPending ->
-            OutboxItem(
-                outboxId = row.outboxId,
-                change = Change(
-                    entity = row.entity,
-                    id = row.recordId,
-                    op = Op.valueOf(row.op),
-                    clientUpdatedAt = Instant.parse(row.clientUpdatedAt),
-                    payloadJson = row.payloadJson,
-                    originClientId = row.originClientId,
-                    changeId = row.changeId
+    override fun peekBatch(limit: Int): List<OutboxItem> {
+        val now = Instant.now().toString()
+        return q.selectReady(now, limit.toLong())
+            .executeAsList()
+            .map { row ->
+                OutboxItem(
+                    outboxId = row.outboxId,
+                    change = Change(
+                        entity = row.entity,
+                        id = row.recordId,
+                        op = Op.valueOf(row.op),
+                        clientUpdatedAt = Instant.parse(row.clientUpdatedAt),
+                        payloadJson = row.payloadJson,
+                        originClientId = row.originClientId,
+                        changeId = row.changeId
+                    )
                 )
-            )
-        }
-
-    override fun markAcked(changeIds: List<String>) {
-        if (changeIds.isEmpty()) return
-        q.markAcked(changeIds)
+            }
     }
 
-    override fun markFailed(changeId: String, error: String) {
-        q.markFailedByChangeId(lastError = error, changeId = changeId)
+    fun debugPrintOutboxAll() {
+        println("Outbox (ALL):")
+        q.selectAllOutbox().executeAsList().forEach { r ->
+            println(
+                "- outboxId=${r.outboxId} status=${r.status} attempts=${r.attemptCount} " +
+                        "next=${r.nextAttemptAt} changeId=${r.changeId} err=${r.lastError}"
+            )
+        }
+    }
+
+
+    override fun markAcked(outboxIds: List<Long>) {
+        if (outboxIds.isEmpty()) return
+        q.markAcked(outboxIds)
+    }
+
+    override fun markFailed(outboxId: Long, error: String) {
+        val maxAttempts = 5L
+        val nextAttemptAt = Instant.now().plusSeconds(10).toString()
+
+        q.markFailed(
+            maxAttempts,
+            error,
+            nextAttemptAt,
+            outboxId
+        )
     }
 
     override fun hasPending(): Boolean =

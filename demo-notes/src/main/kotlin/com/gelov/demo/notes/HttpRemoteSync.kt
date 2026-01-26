@@ -56,7 +56,10 @@ class HttpRemoteSync(
         )
 
         return RemotePushAck(
-            acceptedChangeIds = resp.acceptedChangeIds
+            acceptedChangeIds = resp.acceptedChangeIds,
+            serverCursor = resp.serverCursor,
+            serverTime = resp.serverTime,
+            serverId = resp.serverId
         )
     }
 
