@@ -34,16 +34,17 @@ idempotency, retries, conflict handling, and server resets.
 ---
 
 ## 🧠 Architecture Overview
+```text
 Client
 ├─ Local DB (SQLDelight)
-│ ├─ domain tables
-│ ├─ outbox (append-only intent log)
-│ └─ cursor_state
+│  ├─ domain tables
+│  ├─ outbox (append-only intent log)
+│  └─ cursor_state
 │
 ├─ SyncEngine
-│ ├─ push (outbox → server)
-│ ├─ pull (server → local)
-│ └─ retry / backoff
+│  ├─ push (outbox → server)
+│  ├─ pull (server → local)
+│  └─ retry / backoff
 │
 └─ RemoteSync (HTTP)
 
@@ -52,6 +53,7 @@ Server
 ├─ idempotent inserts (changeId)
 ├─ cursor-based pull
 └─ serverId for reset detection
+```
 
 
 ---
