@@ -1,116 +1,126 @@
-# Offline-First Sync Engine (Kotlin + SQLDelight)
+# Offline-First Sync Engine (Kotlin)
 
-A small, generic offline-first sync engine that demonstrates:
-- **Outbox pattern** (local changes queued while offline)
-- **Cursor-based pull** (efficient incremental sync)
-- **Idempotent server change log** (safe retries)
-- **Conflict strategy (LWW)** using `updatedAt`
-- A runnable **demo-notes** module to show the full flow end-to-end
+A lightweight, **offline-first synchronization engine** built with Kotlin and SQLDelight.
+Designed for **mobile & desktop apps** that must work reliably without constant connectivity.
 
----
-
-## Why this matters
-
-Offline-first apps must handle:
-- unreliable networks
-- retries without duplication
-- conflict resolution when multiple devices edit the same record
-- fast incremental sync (no full reloads)
-
-This repository provides a clear, modular reference implementation in Kotlin.
+This project is not a demo toy – it focuses on **real-world sync problems**:
+idempotency, retries, conflict handling, and server resets.
 
 ---
 
-## Project structure
+## ✨ Features
 
-- `sync-core`
-  - protocol & domain models (`Change`, `Op`)
-  - `SyncEngine.syncOnce()`
-  - `SyncReport`
-  - `RemoteSync` interface (push/pull)
-- `sync-sqldelight`
-  - SQLDelight-backed implementations:
-    - `SqlDelightOutbox`
-    - `SqlDelightCursorStore`
-- `demo-notes`
-  - runnable JVM demo using SQLDelight + SQLite
-  - a simulated server (`ServerSimulator`) with append-only change log + cursor tables
+- **Offline-first by design**
+  - All local changes are stored in an Outbox
+  - Works fully offline, syncs when connectivity returns
 
----
+- **Idempotent sync (ChangeId)**
+  - Every change has a globally unique `changeId`
+  - Server uses append-only change log with de-duplication
 
-## Data model (core idea)
+- **Reliable retries with backoff**
+  - FAILED → retry after `nextAttemptAt`
+  - Automatic retry scheduling
+  - DEAD state after max attempts
 
-Each record is synced using:
-- `id: UUID`
-- `updatedAt: Instant`
-- `deletedAt: Instant?` (tombstone)
+- **Cursor-based pull**
+  - Efficient incremental sync
+  - Server reset detection via `serverId`
 
-Outgoing changes are queued in an **outbox** table:
-- `PENDING` → `ACKED` or `FAILED`
-
-Incoming changes are pulled using a monotonically increasing **cursor**:
-- client asks: “give me changes after cursor X”
-- server responds: changes + `nextCursor`
+- **Conflict handling**
+  - Last-Write-Wins (timestamp + originClientId tie-break)
+  - Deterministic & predictable behavior
 
 ---
 
-## Conflict strategy: Last Write Wins (LWW)
+## 🧠 Architecture Overview
+```text
+Client
+├─ Local DB (SQLDelight)
+│  ├─ domain tables
+│  ├─ outbox (append-only intent log)
+│  └─ cursor_state
+│
+├─ SyncEngine
+│  ├─ push (outbox → server)
+│  ├─ pull (server → local)
+│  └─ retry / backoff
+│
+└─ RemoteSync (HTTP)
 
-When applying a pulled change, the client checks:
-
-- if `incoming.updatedAt >= local.updatedAt` → apply
-- else → ignore (conflict)
-
-This keeps the engine predictable and easy to reason about.
-(Other strategies can be plugged in later.)
-
----
-
-## Idempotent retries
-
-The server change log is append-only, but retry-safe:
-- `INSERT OR IGNORE`
-- `UNIQUE(entity, record_id, updated_at)`
-
-A re-sent batch won’t create duplicate server changes.
-
----
-
-## Demo output
-
-### No-op sync (already synced)
-```txt
-Cursor at start: 1
-Pending outbox:
-== SyncOnce ==
-SYNC REPORT: SyncReport(entity=note, cursorBefore=1, pushed=0, acked=0, pulled=0, applied=0, ignored=0, cursorAfter=1)
-Done.
-Cursor at start: 1
-== SyncOnce ==
-Simulated remote server change: server-note-1
-SYNC REPORT: SyncReport(entity=note, cursorBefore=1, pushed=0, acked=0, pulled=1, applied=1, ignored=0, cursorAfter=2)
-Done.
+Server
+├─ append-only change_log
+├─ idempotent inserts (changeId)
+├─ cursor-based pull
+└─ serverId for reset detection
 ```
 
-## Run the demo
 
+---
+
+## 🔁 Sync Flow
+
+1. **Local change**
+   - Saved locally
+   - Enqueued in `outbox` with `changeId`
+
+2. **Push**
+   - Client sends pending changes
+   - Server ACKs accepted `changeId`s
+   - Client marks only ACKed items as done
+
+3. **Pull**
+   - Client pulls changes after last cursor
+   - Applies changes deterministically
+   - Cursor is advanced
+
+4. **Retry**
+   - Network failure → FAILED
+   - Retry after `nextAttemptAt`
+   - Eventually marked DEAD if max retries exceeded
+
+---
+
+## 🧪 Demo
+
+The `demo-notes` module simulates:
+- multiple clients (A / B)
+- offline updates
+- server downtime
+- retries & recovery
+- conflict resolution
+
+Run example:
 ```bash
-./gradlew :demo-notes:run --console=plain
-```
-## Sync Flow
+./gradlew :demo-notes:run -Dclient=A -Dflow=update
+./gradlew :demo-notes:run -Dclient=A -Dflow=sync
+./gradlew :demo-notes:run -Dclient=B -Dflow=sync
 
-```mermaid
-flowchart LR
-  Client --> Outbox
-  Outbox --> Push
-  Push --> Server
-  Server --> Pull
-  Pull --> Apply
-  Apply --> Client
-```
+🛠 Tech Stack
 
-## What I’d build next
-- HTTP-based push/pull API
-- per-entity cursors
-- Android demo (Compose + SQLDelight)
-- configurable conflict strategies
+Kotlin
+
+SQLDelight
+
+Ktor (client & server)
+
+SQLite
+
+Gradle (multi-module)
+
+🎯 Motivation
+
+Most sync examples stop at “it works on localhost”.
+This project explores what actually breaks in production:
+network errors, retries, duplicates, restarts, and conflicts.
+
+📌 Status
+
+Actively developed
+Next steps:
+
+batching & compression
+
+pluggable conflict strategies
+
+metrics & observability
